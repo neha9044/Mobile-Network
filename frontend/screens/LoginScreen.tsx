@@ -120,7 +120,7 @@ export default function LoginScreen({
             textClassName={isEnabled ? "text-white" : "text-[#64748B]"}
           />
 
-          <TouchableOpacity className="mt-6 " onPress={onForgotPassword}>
+          <TouchableOpacity className="mt-6" onPress={onForgotPassword}>
             <Text className="text-sm text-gray-600">Forgot Password?</Text>
           </TouchableOpacity>
         </View>
