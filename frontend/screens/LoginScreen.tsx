@@ -52,7 +52,7 @@ export default function LoginScreen({
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FBF7ED]">
+    <SafeAreaView className="flex-1 bg-[#FBF7ED] py-10">
       <TouchableOpacity 
         onPress={onBack}
         disabled={isScrolled}
