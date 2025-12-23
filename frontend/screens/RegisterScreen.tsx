@@ -51,7 +51,7 @@ export default function RegisterScreen({
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FBF7ED]">
+    <SafeAreaView className="flex-1 bg-[#FBF7ED] py-10">
       <TouchableOpacity 
         onPress={onBack}
         disabled={isScrolled}
@@ -80,7 +80,7 @@ export default function RegisterScreen({
       >
         <View className="w-full" style={isTablet ? { width: 400 } : undefined}>
           <Text 
-            className="text-5xl font-serif text-[#1F2937] mb-3"
+            className="text-5xl font-serif text-[#1F2937] mb-3 p "
             style={{ textAlign: isTablet ? "center" : "left" }}
           >
             Register

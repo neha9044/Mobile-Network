@@ -1,48 +1,26 @@
-import React from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Text, View, useWindowDimensions } from "react-native";
 
-const Textbox: React.FC = () => {
+export default function Textbox() {
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;
 
   return (
-    <View style={styles.container}>
-      <Text style={[
-        styles.title, 
-        { textAlign: isTablet ? 'center' : 'left' }
-      ]}>
+    <View className="w-full max-w-[500px] my-5">
+      <Text
+        className={`text-[38px] leading-[44px] font-medium text-slate-800 font-[InstrumentSerif] mb-2 ${
+          isTablet ? "text-center" : "text-left"
+        }`}
+      >
         Welcome to the new era of professional networking
       </Text>
-      <Text style={[
-        styles.description, 
-        { textAlign: isTablet ? 'center' : 'left' }
-      ]}>
+
+      <Text
+        className={`text-base leading-6 text-slate-500 font-[InstrumentSerif] ${
+          isTablet ? "text-center" : "text-left"
+        }`}
+      >
         People Search 3.0 is in full swing in network by Infidhi.
       </Text>
     </View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    maxWidth: 500,
-    marginVertical: 20,
-  },
-  title: {
-    fontSize: 38,
-    color: '#1e293b',
-    lineHeight: 44,
-    fontWeight: '500',
-    fontFamily: 'InstrumentSerif',
-    marginBottom: 10,
-  },
-  description: {
-    fontSize: 16,
-    color: '#64748b',
-    lineHeight: 24,
-    fontFamily: 'InstrumentSerif',
-  },
-});
-
-export default Textbox;
+}

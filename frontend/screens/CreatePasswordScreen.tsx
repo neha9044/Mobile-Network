@@ -31,7 +31,7 @@ export default function CreatePasswordScreen({ onComplete }: CreatePasswordProps
   },);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FBF7ED" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FBF7ED", paddingBottom:10 }}>
       <KeyboardAwareScrollView
         enableOnAndroid
         keyboardShouldPersistTaps="handled"

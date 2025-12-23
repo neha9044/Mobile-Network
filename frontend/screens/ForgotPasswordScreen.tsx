@@ -28,7 +28,7 @@ export default function ForgotPasswordScreen({
   const isTablet = width >= 600;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FBF7ED" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FBF7ED",  }}>
       <KeyboardAwareScrollView
         enableOnAndroid
         contentContainerStyle={{
