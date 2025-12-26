@@ -1,4 +1,3 @@
-// screens/RegisterScreen.tsx
 import {
   View,
   Text,
@@ -34,14 +33,12 @@ export default function RegisterScreen({
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
+
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [mobileTouched, setMobileTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
   const [isScrolled, setIsScrolled] = useState(false);
-
-  const isEnabled = email.trim() !== "" && mobile.trim() !== "" && password.trim() !== "";
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    setIsScrolled(offsetY > 20);
-  };
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -50,15 +47,64 @@ export default function RegisterScreen({
     }
   }, []);
 
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIsScrolled(event.nativeEvent.contentOffset.y > 20);
+  };
+
+  // ✅ EMAIL VALIDATION
+  const emailError =
+    emailTouched &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      ? "Enter a valid email address"
+      : "";
+
+  // ✅ MOBILE VALIDATION
+  const mobileError =
+    mobileTouched &&
+    !/^[0-9]{10}$/.test(mobile)
+      ? "Mobile number must be 10 digits"
+      : "";
+
+  // ✅ PASSWORD VALIDATION (8+ chars, number, symbol)
+  const passwordError =
+    passwordTouched &&
+    !/^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/.test(password)
+      ? "Password must be 8+ characters, include a number & symbol"
+      : "";
+
+  const isEnabled =
+    email !== "" &&
+    mobile !== "" &&
+    password !== "" &&
+    !emailError &&
+    !mobileError &&
+    !passwordError;
+
+  const handleContinue = () => {
+    setEmailTouched(true);
+    setMobileTouched(true);
+    setPasswordTouched(true);
+
+    if (!isEnabled) {
+      showToast.error("Please fix the highlighted fields");
+      return;
+    }
+
+    showToast.registration();
+    onEnterCode();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-[#FBF7ED] py-10">
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={onBack}
         disabled={isScrolled}
         className="absolute z-10 p-4"
         style={[
           { left: 10, opacity: isScrolled ? 0 : 1 },
-          isTablet ? { left: '5%', top: 20 } : { top: Platform.OS === 'android' ? 30 : 0 }
+          isTablet
+            ? { left: "5%", top: 20 }
+            : { top: Platform.OS === "android" ? 30 : 0 },
         ]}
       >
         <Ionicons name="arrow-back" size={20} color="#1F2937" />
@@ -70,63 +116,76 @@ export default function RegisterScreen({
         extraScrollHeight={20}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={{ 
-          flexGrow: 1, 
+        contentContainerStyle={{
+          flexGrow: 1,
           paddingHorizontal: 22,
           justifyContent: isTablet ? "center" : "flex-end",
           alignItems: isTablet ? "center" : "stretch",
-          marginBottom:22,
+          marginBottom: 22,
         }}
       >
         <View className="w-full" style={isTablet ? { width: 400 } : undefined}>
-          <Text 
-            className="text-5xl font-serif text-[#1F2937] mb-3 p "
+          <Text
+            className="text-5xl font-serif text-[#1F2937] mb-3"
             style={{ textAlign: isTablet ? "center" : "left" }}
           >
             Register
           </Text>
 
-          <Text 
+          <Text
             className="text-base text-gray-500 mb-6 leading-6"
             style={{ textAlign: isTablet ? "center" : "left" }}
           >
-            We have sent a 4 digit code in your email, enter it to verify your email
+            We have sent a 6 digit code in your email, enter it to verify your
+            email
           </Text>
 
           <TextInputField
             label="Email"
             placeholder="Enter your email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (!emailTouched) setEmailTouched(true);
+            }}
+            keyboardType="email-address"
+            error={emailError}
+            touched={emailTouched}
           />
 
           <TextInputField
             label="Mobile No"
             placeholder="9876543210"
             value={mobile}
-            onChangeText={setMobile}
+            onChangeText={(text) => {
+              setMobile(text.replace(/[^0-9]/g, ""));
+              if (!mobileTouched) setMobileTouched(true);
+            }}
+            keyboardType="number-pad"
+            maxLength={10}
+            error={mobileError}
+            touched={mobileTouched}
           />
 
           <PasswordInput
             label="Password"
             placeholder="••••••••"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (!passwordTouched) setPasswordTouched(true);
+            }}
+            touched={passwordTouched}
+            error={passwordError}
           />
 
           <PrimaryButton
             title="Continue"
             disabled={!isEnabled}
-            onPress={() => {
-              showToast.registration();
-              onEnterCode();
-            }}
+            onPress={handleContinue}
             className={isEnabled ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
             textClassName={isEnabled ? "text-white" : "text-[#64748B]"}
           />
-
-          <TouchableOpacity className="mt-4 items-center" onPress={onBack}>
-          </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>

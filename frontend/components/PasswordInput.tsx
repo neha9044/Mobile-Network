@@ -5,8 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 interface Props {
   label: string;
   placeholder?: string;
-  value?: string;
-  onChangeText?: (text: string) => void;
+  value: string;
+  onChangeText: (text: string) => void;
+
+  // validation
+  touched?: boolean;
+  error?: string;
 }
 
 export default function PasswordInput({
@@ -14,9 +18,13 @@ export default function PasswordInput({
   placeholder,
   value,
   onChangeText,
+  touched = false,
+  error,
 }: Props) {
   const [secure, setSecure] = useState(true);
-  const [isFocused, setIsFocused] = useState(false); // 🔑 added
+  const [isFocused, setIsFocused] = useState(false);
+
+  const showError = touched && !!error;
 
   return (
     <View className="mb-4 w-full">
@@ -24,10 +32,13 @@ export default function PasswordInput({
         {label}
       </Text>
 
-      {/* Wrapper controls the border (same behavior as TextInputField) */}
       <View
         className={`flex-row items-center rounded-xl bg-white px-4 border ${
-          isFocused ? "border-2 border-black" : "border-gray-200"
+          showError
+            ? "border-red-500"
+            : isFocused
+            ? "border-2 border-black"
+            : "border-gray-200"
         }`}
       >
         <TextInput
@@ -37,12 +48,8 @@ export default function PasswordInput({
           secureTextEntry={secure}
           className="flex-1 py-3 text-base"
           placeholderTextColor="#9CA3AF"
-
-          // 🔑 focus handling
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-
-          // prevent inner outline on web/tablet
           style={Platform.OS === "web" ? { outlineStyle: "none" } : undefined}
         />
 
@@ -50,10 +57,16 @@ export default function PasswordInput({
           <Ionicons
             name={secure ? "eye-outline" : "eye-off-outline"}
             size={20}
-            color="#9CA3AF"
+            color={showError ? "#EF4444" : "#9CA3AF"}
           />
         </TouchableOpacity>
       </View>
+
+      {showError && (
+        <Text className="mt-1 text-sm text-red-500">
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

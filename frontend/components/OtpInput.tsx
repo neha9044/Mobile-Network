@@ -6,6 +6,7 @@ interface Props {
   length?: number;
   value: string;
   onChange: (code: string) => void;
+  error?: string;
 }
 
 export default function OtpInput({
@@ -13,6 +14,7 @@ export default function OtpInput({
   length = 6,
   value,
   onChange,
+  error,
 }: Props) {
   const inputs = useRef<TextInput[]>([]);
 
@@ -32,6 +34,8 @@ export default function OtpInput({
       inputs.current[index - 1]?.focus();
     }
   };
+
+  const showError = !!error;
 
   return (
     <View className="mb-6 w-full">
@@ -59,12 +63,24 @@ export default function OtpInput({
               keyboardType="number-pad"
               maxLength={1}
               className={`w-14 h-14 rounded-xl bg-white text-center text-xl font-semibold text-[#1F2937]
-                ${hasValue ? "border-2 border-[#3d3d3d]" : "border border-gray-200"}
+                ${
+                  showError
+                    ? "border-2 border-red-500"
+                    : hasValue
+                    ? "border-2 border-[#3d3d3d]"
+                    : "border border-gray-200"
+                }
               `}
             />
           );
         })}
       </View>
+
+      {showError && (
+        <Text className="mt-2 text-xs text-red-500">
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

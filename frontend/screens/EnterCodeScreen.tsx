@@ -19,6 +19,8 @@ interface EnterCodeScreenProps {
   onBack: () => void;
 }
 
+const CORRECT_OTP = "123456"; // demo / replace with backend
+
 export default function EnterCodeScreen({
   onSuccess,
   onBack,
@@ -27,6 +29,7 @@ export default function EnterCodeScreen({
   const isTablet = width >= 600;
 
   const [code, setCode] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -34,6 +37,22 @@ export default function EnterCodeScreen({
       NavigationBar.setButtonStyleAsync("dark");
     }
   }, []);
+
+  const handleContinue = () => {
+    if (code.length !== 6) {
+      setOtpError("Please enter the complete 6 digit code");
+      return;
+    }
+
+    if (code !== CORRECT_OTP) {
+      setOtpError("Incorrect verification code");
+      return;
+    }
+
+    setOtpError("");
+    showToast.verification();
+    onSuccess();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#FBF7ED]">
@@ -67,6 +86,7 @@ export default function EnterCodeScreen({
             >
               Enter Code
             </Text>
+
             <Text
               className={`text-base text-gray-500 leading-6 ${
                 isTablet ? "text-center" : "text-left"
@@ -81,18 +101,21 @@ export default function EnterCodeScreen({
             label="Verification Code"
             length={6}
             value={code}
-            onChange={setCode}
+            onChange={(val) => {
+              setCode(val);
+              if (otpError) setOtpError("");
+            }}
+            error={otpError}
           />
 
           <View className="mb-4">
             <PrimaryButton
               title="Continue"
               disabled={code.length !== 6}
-              onPress={() => {
-                showToast.verification();
-                onSuccess();
-              }}
-              className="bg-[#0D0F18]"
+              onPress={handleContinue}
+              className={
+                code.length === 6 ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"
+              }
               textClassName="text-white"
             />
           </View>
