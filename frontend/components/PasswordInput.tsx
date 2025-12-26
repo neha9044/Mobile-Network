@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -16,6 +16,7 @@ export default function PasswordInput({
   onChangeText,
 }: Props) {
   const [secure, setSecure] = useState(true);
+  const [isFocused, setIsFocused] = useState(false); // 🔑 added
 
   return (
     <View className="mb-4 w-full">
@@ -23,7 +24,12 @@ export default function PasswordInput({
         {label}
       </Text>
 
-      <View className="flex-row items-center rounded-xl border border-gray-200 bg-white px-4">
+      {/* Wrapper controls the border (same behavior as TextInputField) */}
+      <View
+        className={`flex-row items-center rounded-xl bg-white px-4 border ${
+          isFocused ? "border-2 border-black" : "border-gray-200"
+        }`}
+      >
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -31,6 +37,13 @@ export default function PasswordInput({
           secureTextEntry={secure}
           className="flex-1 py-3 text-base"
           placeholderTextColor="#9CA3AF"
+
+          // 🔑 focus handling
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+
+          // prevent inner outline on web/tablet
+          style={Platform.OS === "web" ? { outlineStyle: "none" } : undefined}
         />
 
         <TouchableOpacity onPress={() => setSecure(!secure)}>

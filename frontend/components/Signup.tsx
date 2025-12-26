@@ -1,45 +1,26 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { Text, TouchableOpacity, useWindowDimensions } from "react-native";
 
-// Added { onPress } prop to the component
-const Signup = ({ onPress }: { onPress?: () => void }) => {
+interface Props {
+  onPress?: () => void;
+}
+
+export default function Signup({ onPress }: Props) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;
 
   return (
-    <TouchableOpacity 
-      style={[
-        styles.button, 
-        { alignSelf: isTablet ? 'center' : 'flex-start' }
-      ]} 
+    <TouchableOpacity
+      onPress={onPress}
       activeOpacity={0.8}
-      onPress={onPress} // Attached the onPress prop here
+      className={`flex-row items-center justify-center gap-3 w-full max-w-[450px] py-4 bg-[#12141c] rounded-xl my-2 ${
+        isTablet ? "self-center" : "self-start"
+      }`}
     >
       <Ionicons name="mail-outline" size={22} color="#ffffff" />
-      <Text style={styles.text}>Sign up with Mail</Text>
+      <Text className="text-white text-[17px] font-medium">
+        Sign up with Mail
+      </Text>
     </TouchableOpacity>
   );
-};
-
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    width: '100%',
-    maxWidth: 450,
-    paddingVertical: 14,
-    backgroundColor: '#12141c',
-    borderRadius: 10,
-    marginVertical: 6,
-  },
-  text: { 
-    color: '#ffffff', 
-    fontSize: 17, 
-    fontWeight: '500' 
-  },
-});
-
-export default Signup;
+}

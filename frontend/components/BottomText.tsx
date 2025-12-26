@@ -1,45 +1,35 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { Text, TouchableOpacity, useWindowDimensions } from "react-native";
 
-// Added { onPress } prop to the component
-const BottomText = ({ onPress }: { onPress?: () => void }) => {
+interface Props {
+  onPress?: () => void;
+}
+
+export default function BottomText({ onPress }: Props) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;
 
   return (
-    <TouchableOpacity 
-      style={[
-        styles.container, 
-        { justifyContent: isTablet ? 'center' : 'flex-start' }
-      ]}
-      onPress={onPress} // Attached the onPress prop here
+    <TouchableOpacity
+      onPress={onPress}
       activeOpacity={0.7}
+      className={`flex-row items-center w-full  mt-3 mb-[-30px] ${
+        isTablet ? "justify-center" : "justify-start"
+      }`}
     >
-      <Text style={styles.grayText}>Already have an account? </Text>
-      <Text style={styles.boldText}>Log in</Text>
-      <Ionicons name="chevron-forward" size={16} color="#111827" />
+      <Text className="text-gray-500 text-base">
+        Already have an account?{" "}
+      </Text>
+
+      <Text className="text-gray-900 font-semibold text-base mr-1">
+        Log in
+      </Text>
+
+      <Ionicons
+        name="chevron-forward"
+        size={16}
+        color="#111827"
+      />
     </TouchableOpacity>
   );
-};
-
-const styles = StyleSheet.create({
-  container: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginTop: 5, 
-    width: '100%', 
-    marginBottom: -30 
-  },
-  grayText: { 
-    color: '#6b7280', 
-    fontSize: 16 
-  },
-  boldText: { 
-    color: '#111827', 
-    fontWeight: '600', 
-    fontSize: 16 
-  },
-});
-
-export default BottomText;
+}

@@ -1,5 +1,5 @@
-import React from "react";
 import { Pressable, Text, View } from "react-native";
+import GoogleIcon from "./GoogleIcon";
 
 export default function GmailButton() {
   return (
@@ -17,18 +17,8 @@ export default function GmailButton() {
         active:opacity-80
       "
     >
-      {/* Google Icon (Tailwind-built) */}
-      <View
-        className="
-          w-6 h-6
-          rounded-full
-          border-2 border-black
-          items-center
-          justify-center
-          mr-3
-        "
-      >
-        <Text className="font-bold text-sm">G</Text>
+      <View className="mr-3">
+        <GoogleIcon size={22} />
       </View>
 
       <Text className="text-black text-[14px] font-medium">

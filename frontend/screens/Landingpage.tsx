@@ -20,12 +20,12 @@ export default function HomeScreen({
   const isTablet = width >= 600;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F9F8F0] ">
+    <SafeAreaView className="flex-1 bg-[#F9F8F0]  ">
       <ScrollView
         contentContainerClassName={`mb-5
           flex-grow
           px-6
-          pb-10
+          pb-8
           ${isTablet ? "items-center justify-center" : "items-start justify-end"}
         `}
       >
