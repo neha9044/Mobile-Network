@@ -1,0 +1,42 @@
+type User {
+    id: ID!
+    email: String!
+    phoneNo: String!
+}
+
+type AuthPayload {
+    token: String!
+    user: User!
+}
+
+type Query {
+    me: User
+}
+
+type Mutation {
+    register(
+        email: String!
+        phoneNo: String!
+        password: String!
+    ): String!
+
+    verifyEmailOtp(
+        email: String!
+        otp: String!
+    ): String!
+
+    login(
+        identifier: String!
+        password: String!
+    ): AuthPayload!
+
+    forgotPassword(
+        email: String!
+    ): String!
+
+    resetPassword(
+        email: String!
+        otp: String!
+        newPassword: String!
+    ): String!
+}

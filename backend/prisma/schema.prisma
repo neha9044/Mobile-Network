@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// id
+// name
+// age
+// gender
+// email
+// phoneNo
+// passwordHash
+// socialLinks
+// profilePhoto
+// Contacts
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  phoneNo       String   @unique
+  passwordHash  String
+  emailVerified Boolean  @default(false)
+  phoneVerified Boolean  @default(false)
+
+  name         String?
+  dateOfBirth DateTime?
+  gender       String?
+  socialLinks  String[] @default([])
+  profilePhoto String?
+}
+
+model EmailOTP {
+  id        Int      @id @default(autoincrement())
+  email     String
+  otp       String
+  expiresAt DateTime
+}
+
+model Certification {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  link        String?
+  cvId        Int
+  cv          InternetCv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  link        String?
+  cvId        Int
+  cv          InternetCv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+}
+
+enum ExperienceType {
+  JOB
+  INTERNSHIP
+}
+
+model Experience {
+  id          Int    @id @default(autoincrement())
+  type        ExperienceType
+  organization String
+  technology  String
+  duration    String
+  role        String
+  description String
+  link        String?
+  cvId        Int
+  cv          InternetCv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+}
+
+model Qualification {
+  id           Int    @id @default(autoincrement())
+  board        String
+  institution  String
+  passingYear  Int
+  degree       String?
+  score        String
+
+  cvId         Int
+  cv           InternetCv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  links       String[]
+
+  cvId        Int
+  cv          InternetCv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+}
+
+model InternetCv {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+
+  profession   String
+  profilePhoto String?
+  profileSummary String
+
+  skills       String[]
+  languages    String[]
+  hobbies      String[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  certifications Certification[]
+  achievements   Achievement[]
+  experiences    Experience[]
+  qualifications Qualification[]
+  projects        Project[]
+}
+
+model Message {
+  id      Int    @id @default(autoincrement())
+  content String
+}

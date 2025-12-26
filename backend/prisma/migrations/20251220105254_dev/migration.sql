@@ -1,0 +1,10 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `age` on the `User` table. All the data in the column will be lost.
+
+*/
+-- AlterTable
+ALTER TABLE "User" DROP COLUMN "age",
+ADD COLUMN     "dateOfBirth" TIMESTAMP(3),
+ADD COLUMN     "phoneVerified" BOOLEAN NOT NULL DEFAULT false;
