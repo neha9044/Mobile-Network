@@ -20,13 +20,15 @@ datasource db {
 
 model User {
   id            Int      @id @default(autoincrement())
+
+  firstName     String
+  lastName      String?
   email         String   @unique
   phoneNo       String   @unique
   passwordHash  String
   emailVerified Boolean  @default(false)
   phoneVerified Boolean  @default(false)
 
-  name         String?
   dateOfBirth DateTime?
   gender       String?
   socialLinks  String[] @default([])

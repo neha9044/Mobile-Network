@@ -15,7 +15,7 @@ export const auth = {
 
     Mutation: {
         // REGISTER
-        register: async (_: any, { email, phoneNo, password }: any) => {
+        register: async (_: any, { email, phoneNo, password,firstName,lastName }: any) => {
             const existingUser = await prisma.user.findFirst({
                 where: {
                     OR: [{ email }, { phoneNo }],
@@ -58,6 +58,8 @@ export const auth = {
                     email,
                     phoneNo,
                     passwordHash,
+                    firstName,
+                    lastName,
                     emailVerified: false,
                 },
             });
