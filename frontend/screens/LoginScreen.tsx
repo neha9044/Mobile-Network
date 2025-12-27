@@ -13,7 +13,11 @@ import * as NavigationBar from "expo-navigation-bar";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
 import { showToast } from "../utils/toast";
-
+import { useMutation } from "@apollo/client/react";
+import { LOGIN_MUTATION } from "../graphql/mutations";
+import { LoginResponse, LoginVariables } from "../graphql/types";
+import { saveToken } from "../utils/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import TextInputField from "../components/TextInputField";
 import PasswordInput from "../components/PasswordInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -40,6 +44,10 @@ export default function LoginScreen({
 
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const [loginUser, { loading }] = useMutation<LoginResponse, LoginVariables>(
+    LOGIN_MUTATION
+  );
+
   useEffect(() => {
     if (Platform.OS === "android") {
       NavigationBar.setBackgroundColorAsync("#FBF7ED");
@@ -52,23 +60,17 @@ export default function LoginScreen({
   };
 
   const emailError =
-    emailTouched &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    emailTouched && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       ? "Enter a valid email address"
       : "";
 
   const passwordError =
-    passwordTouched && password.trim() === ""
-      ? "Password is required"
-      : "";
+    passwordTouched && password.trim() === "" ? "Password is required" : "";
 
   const isEnabled =
-    email !== "" &&
-    password !== "" &&
-    !emailError &&
-    !passwordError;
+    email !== "" && password !== "" && !emailError && !passwordError && !loading;
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setEmailTouched(true);
     setPasswordTouched(true);
 
@@ -77,8 +79,25 @@ export default function LoginScreen({
       return;
     }
 
-    showToast.login();
-    onLoginAction();
+    try {
+      const res = await loginUser({
+        variables: {
+          identifier: email, // email OR phone number
+          password,
+        },
+      });
+
+      const token = res.data!.login.token;
+
+      await saveToken(token);
+      console.log(await AsyncStorage.getItem("auth_token"));
+
+      showToast.success("Login successful");
+
+      onLoginAction(); // move user forward
+    } catch (err: any) {
+      showToast.error(err.message || "Invalid credentials");
+    }
   };
 
   return (
@@ -113,9 +132,8 @@ export default function LoginScreen({
         }}
       >
         <View className="w-full" style={isTablet ? { width: 400 } : undefined}>
-          <Text className="text-5xl font-serif text-[#1F2937] mb-3">
-            Login
-          </Text>
+          <Text className="text-5xl font-serif text-[#1F2937] mb-3" 
+          style={{ textAlign: isTablet ? "center" : "left" }}>Login</Text>
 
           <Text className="text-base text-gray-500 mb-6">
             Login to see what is out there waiting for you.
@@ -147,8 +165,8 @@ export default function LoginScreen({
           />
 
           <PrimaryButton
-            title="Next"
-            disabled={!isEnabled}
+            title={loading ? "Logging in..." : "Next"}
+            disabled={!isEnabled || loading}
             onPress={handleLogin}
             className={isEnabled ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
             textClassName={isEnabled ? "text-white" : "text-[#64748B]"}

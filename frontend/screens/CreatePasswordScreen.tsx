@@ -14,11 +14,22 @@ import { showToast } from "../utils/toast";
 import PasswordInput from "../components/PasswordInput";
 import PrimaryButton from "../components/PrimaryButton";
 
+import { useMutation } from "@apollo/client/react";
+import { RESET_PASSWORD_MUTATION } from "@/graphql/mutations";
+import { ResetPasswordResponse,ResetPasswordVariables } from "@/graphql/types"; 
+
 interface CreatePasswordProps {
+  email: string;
+  otp: string;
   onComplete: () => void;
 }
 
-export default function CreatePasswordScreen({ onComplete }: CreatePasswordProps) {
+
+export default function CreatePasswordScreen({ 
+  email,
+  otp,
+  onComplete,
+}: CreatePasswordProps) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;
 
@@ -27,6 +38,11 @@ export default function CreatePasswordScreen({ onComplete }: CreatePasswordProps
 
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
+  const [resetPassword, { loading }] = useMutation<
+  ResetPasswordResponse,
+  ResetPasswordVariables
+>(RESET_PASSWORD_MUTATION);
+
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -52,20 +68,34 @@ export default function CreatePasswordScreen({ onComplete }: CreatePasswordProps
     password !== "" &&
     confirmPassword !== "" &&
     !passwordError &&
-    !confirmPasswordError;
+    !confirmPasswordError &&
+      !loading;
 
-  const handleReset = () => {
-    setPasswordTouched(true);
-    setConfirmTouched(true);
 
-    if (!isEnabled) {
-      showToast.error("Please fix the errors");
-      return;
-    }
+  const handleReset = async () => {
+  setPasswordTouched(true);
+  setConfirmTouched(true);
 
-    showToast.reset();
-    onComplete();
-  };
+  if (!isEnabled) {
+    showToast.error("Please fix the errors");
+    return;
+  }
+
+  try {
+    const res = await resetPassword({
+      variables: {
+        email,
+        otp,
+        newPassword: password,
+      },
+    });
+
+    showToast.success(res.data!.resetPassword);
+    onComplete(); // go to login
+  } catch (err: any) {
+    showToast.error(err.message || "Failed to reset password");
+  }
+};
 
   return (
     <SafeAreaView
@@ -132,12 +162,13 @@ export default function CreatePasswordScreen({ onComplete }: CreatePasswordProps
 
           <View className="mt-1">
             <PrimaryButton
-              title="Reset Password"
-              onPress={handleReset}
-              disabled={!isEnabled}
-              className={isEnabled ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
-              textClassName="text-white"
-            />
+  title={loading ? "Resetting..." : "Reset Password"}
+  onPress={handleReset}
+  disabled={!isEnabled}
+  className={isEnabled ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
+  textClassName={isEnabled ? "text-white" : "text-[#64748B]"}
+/>
+
           </View>
 
           <View

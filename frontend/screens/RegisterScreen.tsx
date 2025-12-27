@@ -17,9 +17,15 @@ import { showToast } from "../utils/toast";
 import TextInputField from "../components/TextInputField";
 import PasswordInput from "../components/PasswordInput";
 import PrimaryButton from "../components/PrimaryButton";
+import { useMutation } from "@apollo/client/react";
+import { REGISTER_MUTATION } from "@/graphql/mutations";
+import {
+  RegisterMutationResponse,
+  RegisterMutationVariables,
+} from "@/graphql/types";
 
 interface RegisterScreenProps {
-  onEnterCode: () => void;
+  onEnterCode: (email: string) => void;
   onBack: () => void;
 }
 
@@ -37,8 +43,16 @@ export default function RegisterScreen({
   const [emailTouched, setEmailTouched] = useState(false);
   const [mobileTouched, setMobileTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const [firstNameTouched, setFirstNameTouched] = useState(false);
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [registerUser, { loading }] = useMutation<
+    RegisterMutationResponse,
+    RegisterMutationVariables
+  >(REGISTER_MUTATION);
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -51,17 +65,23 @@ export default function RegisterScreen({
     setIsScrolled(event.nativeEvent.contentOffset.y > 20);
   };
 
+  const firstNameError: string | undefined = !firstNameTouched
+    ? undefined
+    : firstName.trim() === ""
+    ? "First name is required"
+    : !/^[A-Za-z]+$/.test(firstName)
+    ? "First name can only contain letters"
+    : undefined;
+
   // ✅ EMAIL VALIDATION
   const emailError =
-    emailTouched &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    emailTouched && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       ? "Enter a valid email address"
       : "";
 
   // ✅ MOBILE VALIDATION
   const mobileError =
-    mobileTouched &&
-    !/^[0-9]{10}$/.test(mobile)
+    mobileTouched && !/^[0-9]{10}$/.test(mobile)
       ? "Mobile number must be 10 digits"
       : "";
 
@@ -73,14 +93,17 @@ export default function RegisterScreen({
       : "";
 
   const isEnabled =
+    firstName.trim() !== "" &&
     email !== "" &&
     mobile !== "" &&
     password !== "" &&
+    !firstNameError &&
     !emailError &&
     !mobileError &&
     !passwordError;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    setFirstNameTouched(true);
     setEmailTouched(true);
     setMobileTouched(true);
     setPasswordTouched(true);
@@ -90,8 +113,23 @@ export default function RegisterScreen({
       return;
     }
 
-    showToast.registration();
-    onEnterCode();
+    try {
+      const res = await registerUser({
+        variables: {
+          email,
+          phoneNo: mobile,
+          password,
+          firstName,
+          lastName: lastName || null,
+        },
+      });
+
+      showToast.success(res.data!.register);
+      // move to OTP screen AFTER backend success
+      onEnterCode(email);
+    } catch (err: any) {
+      showToast.error(err.message || "Registration failed");
+    }
   };
 
   return (
@@ -136,12 +174,37 @@ export default function RegisterScreen({
             className="text-base text-gray-500 mb-6 leading-6"
             style={{ textAlign: isTablet ? "center" : "left" }}
           >
-            We have sent a 6 digit code in your email, enter it to verify your
+            We will send a 6 digit code in your email, enter it to verify your
             email
           </Text>
 
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <TextInputField
+                label="First Name *"
+                placeholder="John"
+                value={firstName}
+                onChangeText={(text) => {
+                  setFirstName(text);
+                  if (!firstNameTouched) setFirstNameTouched(true);
+                }}
+                error={firstNameError}
+                touched={firstNameTouched}
+              />
+            </View>
+
+            <View className="flex-1">
+              <TextInputField
+                label="Last Name"
+                placeholder="Doe"
+                value={lastName}
+                onChangeText={(text) => setLastName(text)}
+              />
+            </View>
+          </View>
+
           <TextInputField
-            label="Email"
+            label="Email*"
             placeholder="Enter your email"
             value={email}
             onChangeText={(text) => {
@@ -154,7 +217,7 @@ export default function RegisterScreen({
           />
 
           <TextInputField
-            label="Mobile No"
+            label="Mobile No *"
             placeholder="9876543210"
             value={mobile}
             onChangeText={(text) => {
@@ -168,7 +231,7 @@ export default function RegisterScreen({
           />
 
           <PasswordInput
-            label="Password"
+            label="Password *"
             placeholder="••••••••"
             value={password}
             onChangeText={(text) => {
@@ -180,8 +243,8 @@ export default function RegisterScreen({
           />
 
           <PrimaryButton
-            title="Continue"
-            disabled={!isEnabled}
+            title={loading ? "Please wait..." : "Continue"}
+            disabled={!isEnabled || loading}
             onPress={handleContinue}
             className={isEnabled ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
             textClassName={isEnabled ? "text-white" : "text-[#64748B]"}

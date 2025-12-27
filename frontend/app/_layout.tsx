@@ -6,6 +6,8 @@ import { useFonts, InstrumentSerif_400Regular } from "@expo-google-fonts/instrum
 import { useEffect, useRef } from "react";
 import Toast from "react-native-toast-message";
 import { View, Text, Animated, useWindowDimensions } from "react-native";
+import { ApolloProvider } from "@apollo/client/react";
+import { apolloClient } from "../utils/apolloClient";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -188,13 +190,13 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <>
+    <ApolloProvider client={apolloClient}>
       <Stack screenOptions={{ headerShown: false }} />
       <Toast
         config={toastConfig}
         position="top"
         animationType="none"
       />
-    </>
+    </ApolloProvider>
   );
 }

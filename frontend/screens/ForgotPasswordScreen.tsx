@@ -13,13 +13,17 @@ import { showToast } from "../utils/toast";
 
 import TextInputField from "../components/TextInputField";
 import PrimaryButton from "../components/PrimaryButton";
+import { useMutation } from "@apollo/client/react";
+import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations";
+import {
+  ForgotPasswordResponse,
+  ForgotPasswordVariables,
+} from "@/graphql/types";
 
 interface ForgotPasswordScreenProps {
-  onSent: () => void;
+  onSent: (email: string) => void;
   onBack: () => void;
 }
-
-const REGISTERED_EMAIL = "test@gmail.com";
 
 export default function ForgotPasswordScreen({
   onSent,
@@ -28,28 +32,39 @@ export default function ForgotPasswordScreen({
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
 
+  const [sendOtp, { loading }] = useMutation<
+    ForgotPasswordResponse,
+    ForgotPasswordVariables
+  >(FORGOT_PASSWORD_MUTATION);
+
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;
 
   const emailError =
     emailTouched && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       ? "Enter a valid email address"
-      : emailTouched && email !== REGISTERED_EMAIL
-      ? "This email is not registered"
       : "";
 
-  const isEnabled = email !== "" && !emailError;
+  const isEnabled = email !== "" && !emailError && !loading;
 
-  const handleSend = () => {
+  const handleSend = async () => {
     setEmailTouched(true);
 
     if (!isEnabled) {
-      showToast.error("Please enter a registered email");
+      showToast.error("Please enter a valid email");
       return;
     }
 
-    showToast.email();
-    onSent();
+    try {
+      const res = await sendOtp({
+        variables: { email },
+      });
+
+      showToast.success(res.data!.forgotPassword);
+      onSent(email); // 🔥 pass email forward
+    } catch (err: any) {
+      showToast.error(err.message || "Email not found");
+    }
   };
 
   return (
@@ -58,11 +73,9 @@ export default function ForgotPasswordScreen({
         enableOnAndroid
         enableAutomaticScroll
         keyboardShouldPersistTaps="handled"
-
         /* 🔥 THIS IS THE KEY FIX */
         extraScrollHeight={Platform.OS === "android" ? 220 : 140}
         extraHeight={Platform.OS === "android" ? 220 : 140}
-
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: isTablet ? "center" : "flex-end",
@@ -99,11 +112,11 @@ export default function ForgotPasswordScreen({
           />
 
           <PrimaryButton
-            title="Send Code"
+            title={loading ? "Sending..." : "Send Code"}
             onPress={handleSend}
             disabled={!isEnabled}
             className={isEnabled ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
-            textClassName="text-white"
+            textClassName={isEnabled ? "text-white" : "text-[#64748B]"}
           />
 
           <View className="flex-row items-center justify-center mt-6">
@@ -112,9 +125,7 @@ export default function ForgotPasswordScreen({
             </Text>
             <TouchableOpacity onPress={onBack}>
               <View className="flex-row items-center">
-                <Text className="text-[#111827] font-bold text-sm">
-                  Login{" "}
-                </Text>
+                <Text className="text-[#111827] font-bold text-sm">Login </Text>
                 <Ionicons name="arrow-forward" size={14} color="#111827" />
               </View>
             </TouchableOpacity>

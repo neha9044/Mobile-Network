@@ -2,6 +2,14 @@
 import Toast from 'react-native-toast-message';
 
 export const showToast = {
+
+  success: (message = "Success") => {
+    Toast.show({
+      type: "success",
+      text1: message,
+    });
+  },
+
   registration: () =>
     Toast.show({
       type: 'success',

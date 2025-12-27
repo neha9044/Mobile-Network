@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import HomeScreen from "../screens/Landingpage";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import EnterCodeScreen from "../screens/EnterCodeScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import CreatePasswordScreen from "../screens/CreatePasswordScreen";
+import { getToken } from "../utils/auth";
 
 type Route =
   | "landing"
@@ -17,6 +18,35 @@ type Route =
 export default function App() {
   // App starts from landing page
   const [route, setRoute] = useState<Route>("landing");
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [passwordResetEmail, setPasswordResetEmail] = useState("");
+  const [resetOtp, setResetOtp] = useState("");
+  const [otpMode, setOtpMode] = useState<"register" | "forgot-password">(
+    "register"
+  );
+
+  const [isBooting, setIsBooting] = useState(true); //auto save login state
+
+  useEffect(() => {
+    const bootstrapAuth = async () => {
+      try {
+        const token = await getToken();
+
+        if (token) {
+          // user already logged in
+          setRoute("landing"); // later → dashboard/home
+        }
+      } finally {
+        setIsBooting(false);
+      }
+    }; //auto login
+
+    bootstrapAuth();
+  }, []);
+
+  if (isBooting) {
+    return null; // or a splash screen
+  }
 
   switch (route) {
     case "landing":
@@ -30,8 +60,11 @@ export default function App() {
     case "register":
       return (
         <RegisterScreen
-          // Flow: register -> enter code
-          onEnterCode={() => setRoute("enter-code")}
+          onEnterCode={(email: string) => {
+            setRegisteredEmail(email);
+            setOtpMode("register");
+            setRoute("enter-code");
+          }}
           onBack={() => setRoute("landing")}
         />
       );
@@ -39,9 +72,19 @@ export default function App() {
     case "enter-code":
       return (
         <EnterCodeScreen
-          // Flow: enter code -> login
-          onSuccess={() => setRoute("login")}
-          onBack={() => setRoute("register")}
+          email={otpMode === "register" ? registeredEmail : passwordResetEmail}
+          mode={otpMode}
+          onSuccess={(otp) => {
+            if (otpMode === "register") {
+              setRoute("login");
+            } else {
+              setResetOtp(otp!);
+              setRoute("create-password");
+            }
+          }}
+          onBack={() =>
+            setRoute(otpMode === "register" ? "register" : "forgot-password")
+          }
         />
       );
 
@@ -58,8 +101,11 @@ export default function App() {
     case "forgot-password":
       return (
         <ForgotPasswordScreen
-          // Flow: forgot password -> create password
-          onSent={() => setRoute("create-password")}
+          onSent={(email) => {
+            setPasswordResetEmail(email);
+            setOtpMode("forgot-password");
+            setRoute("enter-code");
+          }}
           onBack={() => setRoute("login")}
         />
       );
@@ -67,7 +113,8 @@ export default function App() {
     case "create-password":
       return (
         <CreatePasswordScreen
-          // Flow: create password -> login
+          email={passwordResetEmail}
+          otp={resetOtp}
           onComplete={() => setRoute("login")}
         />
       );

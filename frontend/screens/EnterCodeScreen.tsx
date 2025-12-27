@@ -13,15 +13,23 @@ import { showToast } from "../utils/toast";
 
 import PrimaryButton from "../components/PrimaryButton";
 import OtpInput from "../components/OtpInput";
+import { useMutation } from "@apollo/client/react";
+import { VERIFY_EMAIL_OTP_MUTATION } from "@/graphql/mutations";
+import {
+  VerifyEmailOtpResponse,
+  VerifyEmailOtpVariables,
+} from "@/graphql/types";
 
 interface EnterCodeScreenProps {
-  onSuccess: () => void;
+  email: string;
+  mode: "register" | "forgot-password";
+  onSuccess: (otp?: string) => void;
   onBack: () => void;
 }
 
-const CORRECT_OTP = "123456"; // demo / replace with backend
-
 export default function EnterCodeScreen({
+  email,
+  mode,
   onSuccess,
   onBack,
 }: EnterCodeScreenProps) {
@@ -31,6 +39,11 @@ export default function EnterCodeScreen({
   const [code, setCode] = useState("");
   const [otpError, setOtpError] = useState("");
 
+  const [verifyOtp, { loading }] = useMutation<
+    VerifyEmailOtpResponse,
+    VerifyEmailOtpVariables
+  >(VERIFY_EMAIL_OTP_MUTATION);
+
   useEffect(() => {
     if (Platform.OS === "android") {
       NavigationBar.setBackgroundColorAsync("#FBF7ED");
@@ -38,20 +51,27 @@ export default function EnterCodeScreen({
     }
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (code.length !== 6) {
       setOtpError("Please enter the complete 6 digit code");
       return;
     }
 
-    if (code !== CORRECT_OTP) {
-      setOtpError("Incorrect verification code");
-      return;
-    }
+    try {
+      if (mode === "register") {
+        await verifyOtp({
+          variables: { email, otp: code },
+        });
 
-    setOtpError("");
-    showToast.verification();
-    onSuccess();
+        showToast.success("Email verified");
+        onSuccess();
+      } else {
+        // forgot password → just store OTP
+        onSuccess(code);
+      }
+    } catch (err: any) {
+      setOtpError(err.message || "Invalid or expired OTP");
+    }
   };
 
   return (
@@ -77,9 +97,7 @@ export default function EnterCodeScreen({
             paddingTop: isTablet ? 0 : 80,
           }}
         >
-          <View
-            className={`${isTablet ? "items-center" : "items-start"} mb-6`}
-          >
+          <View className={`${isTablet ? "items-center" : "items-start"} mb-6`}>
             <Text
               className="text-5xl font-serif text-[#1F2937] mb-3"
               style={{ textAlign: isTablet ? "center" : "left" }}
@@ -110,12 +128,10 @@ export default function EnterCodeScreen({
 
           <View className="mb-4">
             <PrimaryButton
-              title="Continue"
-              disabled={code.length !== 6}
+              title={loading ? "Verifying..." : "Continue"}
+              disabled={code.length !== 6 || loading}
               onPress={handleContinue}
-              className={
-                code.length === 6 ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"
-              }
+              className={code.length === 6 ? "bg-[#0D0F18]" : "bg-[#CBD5E1]"}
               textClassName="text-white"
             />
           </View>
