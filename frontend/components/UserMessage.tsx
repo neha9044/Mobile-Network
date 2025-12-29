@@ -93,7 +93,7 @@ export default function UserMessage({ message }: { message: Message }) {
 
   return (
     <View className="w-full flex-row justify-end mb-3">
-      <View className="max-w-[80%] bg-[#53389E] px-4 py-3 rounded-2xl rounded-br-none">
+      <View className="max-w-[80%] bg-[#53389E] px-6 py-3 rounded-2xl rounded-br-none">
         {/* TEXT */}
         {message.type === "text" && (
           <Text className="text-white text-[15px] leading-5">

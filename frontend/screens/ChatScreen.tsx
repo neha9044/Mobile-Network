@@ -4,6 +4,8 @@ import {
   SafeAreaView,
   Keyboard,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
@@ -13,8 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import BotMessage from "../components/BotMessage";
 import UserMessage from "../components/UserMessage";
 import ChatInput from "../components/ChatInput";
+import HomeIntro from "../components/HomeIntro";
 
-/* INLINE MESSAGE TYPE */
 type Message = {
   id: number;
   sender: "bot" | "user";
@@ -27,19 +29,8 @@ export default function ChatScreen() {
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [chatCount, setChatCount] = useState(0);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  useEffect(() => {
-    setMessages([
-      {
-        id: 1,
-        sender: "bot",
-        type: "text",
-        data: "Hey 👋 Welcome to Infi AI. Let’s get started!",
-      },
-    ]);
-  }, []);
+  const [chatStarted, setChatStarted] = useState(false);
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
@@ -57,36 +48,73 @@ export default function ChatScreen() {
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd(true);
-
-    if (chatCount >= 5) {
-      setTimeout(() => router.replace("/"), 800);
-    }
   }, [messages]);
 
   const handleSend = (payload: {
     type: "text" | "pdf" | "voice";
     data: any;
   }) => {
+    const userText =
+      payload.type === "text"
+        ? String(payload.data).trim().toLowerCase()
+        : "";
+
+    if (userText === "exit" || userText === "quit" || userText === "bye") {
+      setChatStarted(true);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: "user",
+          type: "text",
+          data: payload.data,
+        },
+        {
+          id: Date.now() + 1,
+          sender: "bot",
+          type: "text",
+          data: "Alright 👋 Exiting chat.",
+        },
+      ]);
+
+      setTimeout(() => {
+        router.replace("/");
+      }, 500);
+
+      return;
+    }
+
+    if (!chatStarted) {
+      setChatStarted(true);
+      setMessages([
+        {
+          id: Date.now(),
+          sender: "bot",
+          type: "text",
+          data: "Sure 👍 How can I help you?",
+        },
+      ]);
+    }
+
     setMessages((prev) => [
       ...prev,
       {
-        id: Date.now(),
+        id: Date.now() + Math.random(),
         sender: "user",
         type: payload.type,
         data: payload.data,
       },
     ]);
 
-    setChatCount((prev) => prev + 1);
-
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
+          id: Date.now() + Math.random(),
           sender: "bot",
           type: "text",
-          data: "Got it 👍 Tell me more.",
+          data: "Got it. Let me help you with that.",
         },
       ]);
     }, 600);
@@ -96,7 +124,6 @@ export default function ChatScreen() {
     <SafeAreaView className="flex-1 bg-black py-10">
       {/* HEADER */}
       <View className="h-14 flex-row items-center border-b border-[#222] px-4">
-        {/* LEFT (BACK) */}
         <TouchableOpacity
           onPress={() => router.replace("/")}
           className="w-8 items-start"
@@ -104,32 +131,40 @@ export default function ChatScreen() {
           <Ionicons name="arrow-back" size={22} color="#ffffff" />
         </TouchableOpacity>
 
-        {/* CENTER (TITLE) */}
         <View className="flex-1 items-center">
           <Text className="text-white text-[17px] font-semibold">
             Infi AI
           </Text>
         </View>
 
-        {/* RIGHT (SPACER) */}
         <View className="w-8" />
       </View>
 
-      {/* CHAT */}
-      <KeyboardAwareScrollView
-        ref={scrollRef}
-        enableOnAndroid
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: 16, paddingBottom: 150 }}
-      >
-        {messages.map((msg) =>
-          msg.sender === "bot" ? (
-            <BotMessage key={msg.id} text={msg.data} />
-          ) : (
-            <UserMessage key={msg.id} message={msg} />
-          )
-        )}
-      </KeyboardAwareScrollView>
+      {/* BODY */}
+      {!chatStarted ? (
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === "android" && "ios" ? "padding" : "height"}
+        >
+         <HomeIntro fadeOut={chatStarted} />
+
+        </KeyboardAvoidingView>
+      ) : (
+        <KeyboardAwareScrollView
+          ref={scrollRef}
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ padding: 16, paddingBottom: 180 }}
+        >
+          {messages.map((msg) =>
+            msg.sender === "bot" ? (
+              <BotMessage key={msg.id} text={msg.data} />
+            ) : (
+              <UserMessage key={msg.id} message={msg} />
+            )
+          )}
+        </KeyboardAwareScrollView>
+      )}
 
       {/* INPUT */}
       <View
