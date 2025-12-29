@@ -34,7 +34,7 @@ export default function ChatScreen() {
   const isTablet = width >= 768 && width < 1200;
   const isDesktop = width >= 1200;
 
-  const maxContentWidth = isDesktop ? "100%": isTablet ? "100%" : "100%";
+  const maxContentWidth = "100%";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -88,7 +88,8 @@ export default function ChatScreen() {
         ? String(payload.data).trim().toLowerCase()
         : "";
 
-    if (userText === "exit" || userText === "quit" || userText === "bye") {
+    // ✅ EXIT FLOW → LOADING → PROFILE
+    if (userText === "/exit" || userText === "/quit" || userText === "/bye") {
       setMessages((prev) => [
         ...prev,
         {
@@ -105,7 +106,10 @@ export default function ChatScreen() {
         },
       ]);
 
-      setTimeout(() => router.replace("/"), 500);
+      setTimeout(() => {
+        router.replace("/loading");
+      }, 300);
+
       return;
     }
 
@@ -172,7 +176,6 @@ export default function ChatScreen() {
               className="flex-1"
               behavior={Platform.OS === "android" ? "height" : "padding"}
             >
-              {/* 🔑 CENTER & SCALE INTRO FOR TABLET / DESKTOP */}
               <View
                 className="flex-1 items-center justify-center"
                 style={{

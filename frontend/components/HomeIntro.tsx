@@ -78,7 +78,7 @@ export default function HomeIntro({
       </Text>
 
       <Text className="text-gray-500 text-lg text-center mb-3">
-        (Type "exit" to leave the chat)
+        (Type "/exit" to leave the chat)
       </Text>
     </Animated.View>
   );
