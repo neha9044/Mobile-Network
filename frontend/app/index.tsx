@@ -7,13 +7,15 @@ import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import CreatePasswordScreen from "../screens/CreatePasswordScreen";
 import { getToken } from "../utils/auth";
 
+import ChatScreen from "@/screens/ChatScreen";
 type Route =
   | "landing"
   | "login"
   | "register"
   | "enter-code"
   | "forgot-password"
-  | "create-password";
+  | "create-password"
+  | "chat";
 
 export default function App() {
   // App starts from landing page
@@ -88,15 +90,18 @@ export default function App() {
         />
       );
 
-    case "login":
-      return (
-        <LoginScreen
-          // Flow: login button triggers no further screen
-          onLoginAction={() => console.log("Logging in...")}
-          onForgotPassword={() => setRoute("forgot-password")}
-          onBack={() => setRoute("landing")}
-        />
-      );
+   
+       case "login":
+  return (
+    <LoginScreen
+      onLoginAction={() => {
+        console.log("Logging in...");
+        setRoute("chat"); 
+      }}
+      onForgotPassword={() => setRoute("forgot-password")}
+      onBack={() => setRoute("landing")}
+    />
+  );
 
     case "forgot-password":
       return (
@@ -118,8 +123,16 @@ export default function App() {
           onComplete={() => setRoute("login")}
         />
       );
+    
+      case "chat":
+  return(
+<ChatScreen onExit={() => setRoute("landing")} />
+  ) ;
+
 
     default:
       return null;
   }
 }
+
+
