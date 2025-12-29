@@ -1,4 +1,4 @@
-import { View, Text, Image, Animated } from "react-native";
+import { View, Text, Image, Animated, useWindowDimensions } from "react-native";
 import { useEffect, useRef, useState } from "react";
 
 const QUESTION =
@@ -13,6 +13,14 @@ export default function HomeIntro({
   const [charIndex, setCharIndex] = useState(0);
 
   const opacity = useRef(new Animated.Value(1)).current;
+
+  // 🔑 Screen size detection
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768 && width < 1200;
+  const isDesktop = width >= 1200;
+
+  // 🔑 Dynamic image size
+  const orbSize = isDesktop ? 180 : isTablet ? 120 : 80;
 
   /* 🔥 FADE OUT WHEN CHAT STARTS */
   useEffect(() => {
@@ -44,29 +52,31 @@ export default function HomeIntro({
       style={{ opacity }}
       className="flex-1 items-center justify-center px-6"
     >
-      {/* AI ORB */}
+      {/* AI ORB (DYNAMIC SIZE) */}
       <Image
-        source={require("../assets/images/ai-orb.png")}
-        className="w-30 h-20 mb-6"
-        resizeMode="contain"
-      />
+  source={require("../assets/images/ai-orb.png")}
+  resizeMode="contain"
+  style={{
+    width: orbSize,
+    height: orbSize,
+    marginBottom: isDesktop ? 32 : 24,
+    alignSelf: isTablet || isDesktop ? "center" : "auto", // ✅ ADD THIS
+  }}
+/>
 
       {/* GREETING */}
-      <Text className="text-[#996ee3] text-3xl font-semibold text-center mb-4 ">
+      <Text className="text-[#996ee3] text-3xl font-semibold text-center mb-4">
         Welcome to Infi AI, Your career assistant
       </Text>
-
-      {/* EXIT INFO */}
-    
 
       {/* SINGLE QUESTION TYPE ANIMATION */}
       <Text className="text-gray-400 text-center text-2xl leading-5 min-h-[24px] mb-2">
         {text}
         {charIndex < QUESTION.length && (
-          <Text className="text-gray-500 ">▍</Text>
+          <Text className="text-gray-500">▍</Text>
         )}
-          
       </Text>
+
       <Text className="text-gray-500 text-lg text-center mb-3">
         (Type "exit" to leave the chat)
       </Text>

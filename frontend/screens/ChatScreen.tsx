@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  useWindowDimensions,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
@@ -28,6 +29,12 @@ type Message = {
 export default function ChatScreen() {
   const router = useRouter();
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
+
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768 && width < 1200;
+  const isDesktop = width >= 1200;
+
+  const maxContentWidth = isDesktop ? "100%": isTablet ? "100%" : "100%";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -81,7 +88,6 @@ export default function ChatScreen() {
         ? String(payload.data).trim().toLowerCase()
         : "";
 
-    // EXIT COMMAND
     if (userText === "exit" || userText === "quit" || userText === "bye") {
       setMessages((prev) => [
         ...prev,
@@ -103,7 +109,6 @@ export default function ChatScreen() {
       return;
     }
 
-    // 🔥 First message → start chat smoothly
     if (!chatStarted) {
       setChatStarted(true);
       setMessages([
@@ -140,7 +145,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black py-10">
+    <SafeAreaView className="flex-1 bg-black">
       {/* HEADER */}
       <View className="h-14 flex-row items-center border-b border-[#222] px-4">
         <TouchableOpacity
@@ -160,37 +165,56 @@ export default function ChatScreen() {
       </View>
 
       {/* BODY */}
-      {!chatStarted ? (
-        <KeyboardAvoidingView
-          className="flex-1"
-          behavior={Platform.OS === "android" && "ios" ? "padding" : "height"}
-        >
-          <HomeIntro fadeOut={chatStarted} />
-        </KeyboardAvoidingView>
-      ) : (
-        <Animated.View
-          style={{
-            flex: 1,
-            opacity: chatOpacity,
-            transform: [{ translateY: chatTranslateY }],
-          }}
-        >
-          <KeyboardAwareScrollView
-            ref={scrollRef}
-            enableOnAndroid
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 16, paddingBottom: 180 }}
-          >
-            {messages.map((msg) =>
-              msg.sender === "bot" ? (
-                <BotMessage key={msg.id} text={msg.data} />
-              ) : (
-                <UserMessage key={msg.id} message={msg} />
-              )
-            )}
-          </KeyboardAwareScrollView>
-        </Animated.View>
-      )}
+      <View className="flex-1 items-center">
+        <View style={{ width: "100%", maxWidth: maxContentWidth, flex: 1 }}>
+          {!chatStarted ? (
+            <KeyboardAvoidingView
+              className="flex-1"
+              behavior={Platform.OS === "android" ? "height" : "padding"}
+            >
+              {/* 🔑 CENTER & SCALE INTRO FOR TABLET / DESKTOP */}
+              <View
+                className="flex-1 items-center justify-center"
+                style={{
+                  transform: [
+                    {
+                      scale: isDesktop ? 0.78 : isTablet ? 0.85 : 1,
+                    },
+                  ],
+                }}
+              >
+                <HomeIntro fadeOut={chatStarted} />
+              </View>
+            </KeyboardAvoidingView>
+          ) : (
+            <Animated.View
+              style={{
+                flex: 1,
+                opacity: chatOpacity,
+                transform: [{ translateY: chatTranslateY }],
+              }}
+            >
+              <KeyboardAwareScrollView
+                ref={scrollRef}
+                enableOnAndroid
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{
+                  padding: 16,
+                  paddingBottom: 180,
+                }}
+              >
+                {messages.map((msg) =>
+                  msg.sender === "bot" ? (
+                    <BotMessage key={msg.id} text={msg.data} />
+                  ) : (
+                    <UserMessage key={msg.id} message={msg} />
+                  )
+                )}
+              </KeyboardAwareScrollView>
+            </Animated.View>
+          )}
+        </View>
+      </View>
 
       {/* INPUT */}
       <View
@@ -200,9 +224,9 @@ export default function ChatScreen() {
           right: 0,
           bottom: keyboardHeight,
         }}
-        className="pb-14 items-center"
+        className="items-center pb-10"
       >
-        <View className="w-[96%]">
+        <View style={{ width: "96%", maxWidth: maxContentWidth }}>
           <ChatInput onSend={handleSend} />
         </View>
       </View>
