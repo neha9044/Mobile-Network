@@ -1,14 +1,8 @@
 import { View, Text, Image, Animated } from "react-native";
 import { useEffect, useRef, useState } from "react";
 
-const AI_QUESTIONS = [
-  "Would you like help creating a professional resume?",
-  "Need assistance tailoring your resume for a job role?",
-  "Want to improve your resume summary or headline?",
-  "Need help highlighting your skills and experience?",
-  "Preparing for interviews and job applications?",
-  "Want to build a resume that passes ATS screening?",
-];
+const QUESTION =
+  "Would you like help creating a professional resume?";
 
 export default function HomeIntro({
   fadeOut = false,
@@ -16,9 +10,7 @@ export default function HomeIntro({
   fadeOut?: boolean;
 }) {
   const [text, setText] = useState("");
-  const [questionIndex, setQuestionIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -33,36 +25,19 @@ export default function HomeIntro({
     }
   }, [fadeOut]);
 
-  /* TYPE + BACKSPACE ANIMATION */
+  /* TYPEWRITER (ONLY ONCE, NO DELETE, NO LOOP) */
   useEffect(() => {
-    const currentQuestion = AI_QUESTIONS[questionIndex];
     let timeout: NodeJS.Timeout;
 
-    if (!isDeleting) {
-      if (charIndex < currentQuestion.length) {
-        timeout = setTimeout(() => {
-          setText((prev) => prev + currentQuestion.charAt(charIndex));
-          setCharIndex((prev) => prev + 1);
-        }, 35);
-      } else {
-        timeout = setTimeout(() => setIsDeleting(true), 1200);
-      }
-    } else {
-      if (text.length > 0) {
-        timeout = setTimeout(() => {
-          setText((prev) => prev.slice(0, -1));
-        }, 25);
-      } else {
-        setIsDeleting(false);
-        setCharIndex(0);
-        setQuestionIndex(
-          (prev) => (prev + 1) % AI_QUESTIONS.length
-        );
-      }
+    if (charIndex < QUESTION.length) {
+      timeout = setTimeout(() => {
+        setText((prev) => prev + QUESTION.charAt(charIndex));
+        setCharIndex((prev) => prev + 1);
+      }, 35);
     }
 
     return () => clearTimeout(timeout);
-  }, [text, charIndex, isDeleting, questionIndex]);
+  }, [charIndex]);
 
   return (
     <Animated.View
@@ -77,19 +52,23 @@ export default function HomeIntro({
       />
 
       {/* GREETING */}
-      <Text className="text-[#7C3AED] text-3xl font-semibold text-center">
+      <Text className="text-[#996ee3] text-3xl font-semibold text-center mb-4 ">
         Welcome to Infi AI, Your career assistant
       </Text>
 
       {/* EXIT INFO */}
-      <Text className="text-gray-500 text-lg text-center mb-3">
-        (Type "exit" to exit the chat)
-      </Text>
+    
 
-      {/* TYPE + ERASE ANIMATION */}
-      <Text className="text-gray-400 text-center text-lg leading-5 min-h-[24px]">
+      {/* SINGLE QUESTION TYPE ANIMATION */}
+      <Text className="text-gray-400 text-center text-2xl leading-5 min-h-[24px] mb-2">
         {text}
-        <Text className="text-gray-500">▍</Text>
+        {charIndex < QUESTION.length && (
+          <Text className="text-gray-500 ">▍</Text>
+        )}
+          
+      </Text>
+      <Text className="text-gray-500 text-lg text-center mb-3">
+        (Type "exit" to leave the chat)
       </Text>
     </Animated.View>
   );

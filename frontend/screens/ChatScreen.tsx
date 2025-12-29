@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
@@ -31,6 +32,27 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [chatStarted, setChatStarted] = useState(false);
+
+  // 🔥 Smooth chat appearance animation
+  const chatOpacity = useRef(new Animated.Value(0)).current;
+  const chatTranslateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    if (chatStarted) {
+      Animated.parallel([
+        Animated.timing(chatOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(chatTranslateY, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [chatStarted]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
@@ -59,9 +81,8 @@ export default function ChatScreen() {
         ? String(payload.data).trim().toLowerCase()
         : "";
 
+    // EXIT COMMAND
     if (userText === "exit" || userText === "quit" || userText === "bye") {
-      setChatStarted(true);
-
       setMessages((prev) => [
         ...prev,
         {
@@ -78,13 +99,11 @@ export default function ChatScreen() {
         },
       ]);
 
-      setTimeout(() => {
-        router.replace("/");
-      }, 500);
-
+      setTimeout(() => router.replace("/"), 500);
       return;
     }
 
+    // 🔥 First message → start chat smoothly
     if (!chatStarted) {
       setChatStarted(true);
       setMessages([
@@ -146,24 +165,31 @@ export default function ChatScreen() {
           className="flex-1"
           behavior={Platform.OS === "android" && "ios" ? "padding" : "height"}
         >
-         <HomeIntro fadeOut={chatStarted} />
-
+          <HomeIntro fadeOut={chatStarted} />
         </KeyboardAvoidingView>
       ) : (
-        <KeyboardAwareScrollView
-          ref={scrollRef}
-          enableOnAndroid
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ padding: 16, paddingBottom: 180 }}
+        <Animated.View
+          style={{
+            flex: 1,
+            opacity: chatOpacity,
+            transform: [{ translateY: chatTranslateY }],
+          }}
         >
-          {messages.map((msg) =>
-            msg.sender === "bot" ? (
-              <BotMessage key={msg.id} text={msg.data} />
-            ) : (
-              <UserMessage key={msg.id} message={msg} />
-            )
-          )}
-        </KeyboardAwareScrollView>
+          <KeyboardAwareScrollView
+            ref={scrollRef}
+            enableOnAndroid
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 16, paddingBottom: 180 }}
+          >
+            {messages.map((msg) =>
+              msg.sender === "bot" ? (
+                <BotMessage key={msg.id} text={msg.data} />
+              ) : (
+                <UserMessage key={msg.id} message={msg} />
+              )
+            )}
+          </KeyboardAwareScrollView>
+        </Animated.View>
       )}
 
       {/* INPUT */}
