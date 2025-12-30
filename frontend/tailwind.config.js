@@ -11,6 +11,7 @@ module.exports = {
       fontFamily: {
         // This allows you to use 'font-serif' in your classes
         serif: ["InstrumentSerif"], 
+        sans: ["Inter", "sans-serif"],
       },
     },
   },
